@@ -1,17 +1,39 @@
-function CSV2Plots_v1(filename, singleFigure, folderName)
-    % plotBusAndGeneratorData - Parses a CSV file and plots data.
+function CSV2Plots_v1(baseFilePath, singleFigure, numFiles, folderName)
+    % CSV2Plots_v1 - Loops through multiple CSV files and generates plots.
     %
-    % Syntax: plotBusAndGeneratorData(filename, singleFigure, folderName)
+    % Syntax: CSV2Plots_v1(baseFilePath, singleFigure, numFiles, folderName)
     %
     % Inputs:
-    %   filename - The path to the CSV file containing the data.
+    %   baseFilePath - The base path of the CSV files (e.g., '/path/to/BZ_fix-opf').
     %   singleFigure - Boolean flag to indicate if all plots should be
     %                  combined into subplots on a single figure.
-    %   folderName - Name of the folder to save the plots as JPEG images.
+    %   numFiles - Number of files to process (e.g., 23).
+    %   folderName - Name of the folder to save the plots for all files.
     %
     % Example:
-    %   plotBusAndGeneratorData('/path/to/file.csv', true, 'MyPlots');
+    %   CSV2Plots_v1('/output/UT_equal/BZ_fix-opf', true, 23, 'UT_equal plots');
 
+    %% Create the main folder if it doesn't exist
+    if ~exist(folderName, 'dir')
+        mkdir(folderName);
+    end
+
+    %% Loop through all files
+    for i = 1:numFiles
+        % Construct the filename
+        currentFile = sprintf('%s%d.csv', baseFilePath, i);
+
+        % Call the plot function for each file
+        try
+            plotBusAndGeneratorData(currentFile, singleFigure, folderName, i);
+            fprintf('Processed and saved plots for %s\n', currentFile);
+        catch ME
+            fprintf('Failed to process %s: %s\n', currentFile, ME.message);
+        end
+    end
+end
+
+function plotBusAndGeneratorData(filename, singleFigure, folderName, fileIndex)
     %% Load the file
     fileData = fileread(filename);
 
@@ -78,89 +100,89 @@ function CSV2Plots_v1(filename, singleFigure, folderName)
         error('The GENERATORS data does not have 12 columns.');
     end
 
-    pg = genData(:, 11);
-    qg = genData(:, 12);
+    qg = genData(:, 11) * 100;
+    pg = genData(:, 12) * 100;
     busNumbers = genData(:, 4);
-
-    %% Create the folder if it doesn't exist
-    if ~exist(folderName, 'dir')
-        mkdir(folderName);
-    end
 
     %% Plot the data
     if singleFigure
-        figure;
+        f = figure('Visible', 'off');
 
         % Subplot 1: Voltage Magnitudes (VM)
         subplot(2, 2, 1);
-        plot(vm, 'ro-', 'MarkerSize', 4);
+        plot(vm, 'k-', 'MarkerSize', 2);
         grid on;
-        title('Voltage Magnitudes (VM)');
-        xlabel('Bus Index');
-        ylabel('VM');
+        title('Voltage Magnitudes (VM)', 'FontSize', 10);
+        xlabel('Bus Index', 'FontSize', 9);
+        ylabel('VM (pu at 12.5 base)', 'FontSize', 9);
 
         % Subplot 2: Voltage Angles (VA)
         subplot(2, 2, 2);
-        plot(va, 'bo-', 'MarkerSize', 4);
+        plot(va, 'r-', 'MarkerSize', 2);
         grid on;
-        title('Voltage Angles (VA)');
-        xlabel('Bus Index');
-        ylabel('VA');
+        title('Voltage Angles (VA)', 'FontSize', 10);
+        xlabel('Bus Index', 'FontSize', 9);
+        ylabel('VA (degrees)', 'FontSize', 9);
 
         % Subplot 3: Generator Real Power (PG)
         subplot(2, 2, 3);
         bar(busNumbers, pg, 'k'); % Black bar plot with Bus Numbers on x-axis
         grid on;
-        title('Generator Real Power (PG)');
-        xlabel('Bus Number');
-        ylabel('PG');
+        title('Generator Real Power (PG)', 'FontSize', 10);
+        xlabel('Bus Number', 'FontSize', 9);
+        ylabel('PG (MW)', 'FontSize', 9);
 
         % Subplot 4: Generator Reactive Power (QG)
         subplot(2, 2, 4);
         bar(busNumbers, qg, 'r'); % Red bar plot with Bus Numbers on x-axis
         grid on;
-        title('Generator Reactive Power (QG)');
-        xlabel('Bus Number');
-        ylabel('QG');
+        title('Generator Reactive Power (QG)', 'FontSize', 10);
+        xlabel('Bus Number', 'FontSize', 9);
+        ylabel('QG (Mvar)', 'FontSize', 9);
 
         % Save the figure
-        saveas(gcf, fullfile(folderName, 'AllPlots.jpg'));
+        saveas(f, fullfile(folderName, sprintf('AllPlots_File_%d.jpg', fileIndex)));
+        close(f);
 
     else
         % Plot VM values
-        figure;
-        plot(vm, 'ro-', 'MarkerSize', 4);
+        f1 = figure('Visible', 'off');
+        plot(vm, 'ro-', 'MarkerSize', 2);
         grid on;
-        title('Voltage Magnitudes (VM)');
-        xlabel('Bus Index');
-        ylabel('VM');
-        saveas(gcf, fullfile(folderName, 'VoltageMagnitudes.jpg'));
+        title('Voltage Magnitudes (VM)', 'FontSize', 10);
+        xlabel('Bus Index', 'FontSize', 9);
+        ylabel('VM (pu at 12.5 base)', 'FontSize', 9);
+        saveas(f1, fullfile(folderName, sprintf('VoltageMagnitudes_File_%d.jpg', fileIndex)));
+        close(f1);
 
         % Plot VA values
-        figure;
-        plot(va, 'bo-', 'MarkerSize', 4);
+        f2 = figure('Visible', 'off');
+        plot(va, 'bo-', 'MarkerSize', 2);
         grid on;
-        title('Voltage Angles (VA)');
-        xlabel('Bus Index');
-        ylabel('VA');
-        saveas(gcf, fullfile(folderName, 'VoltageAngles.jpg'));
+        title('Voltage Angles (VA)', 'FontSize', 10);
+        xlabel('Bus Index', 'FontSize', 9);
+        ylabel('VA (degrees)', 'FontSize', 9);
+        saveas(f2, fullfile(folderName, sprintf('VoltageAngles_File_%d.jpg', fileIndex)));
+        close(f2);
 
         % Plot PG values
-        figure;
+        f3 = figure('Visible', 'off');
         bar(busNumbers, pg, 'k'); % Black bar plot with Bus Numbers on x-axis
         grid on;
-        title('Generator Real Power (PG)');
-        xlabel('Bus Number');
-        ylabel('PG');
-        saveas(gcf, fullfile(folderName, 'GeneratorRealPower.jpg'));
+        title('Generator Real Power (PG)', 'FontSize', 10);
+        xlabel('Bus Number', 'FontSize', 9);
+        ylabel('PG (MW)', 'FontSize', 9);
+        saveas(f3, fullfile(folderName, sprintf('GeneratorRealPower_File_%d.jpg', fileIndex)));
+        close(f3);
 
         % Plot QG values
-        figure;
+        f4 = figure('Visible', 'off');
         bar(busNumbers, qg, 'r'); % Red bar plot with Bus Numbers on x-axis
         grid on;
-        title('Generator Reactive Power (QG)');
-        xlabel('Bus Number');
-        ylabel('QG');
-        saveas(gcf, fullfile(folderName, 'GeneratorReactivePower.jpg'));
+        title('Generator Reactive Power (QG)', 'FontSize', 10);
+        xlabel('Bus Number', 'FontSize', 9);
+        ylabel('QG (Mvar)', 'FontSize', 9);
+        saveas(f4, fullfile(folderName, sprintf('GeneratorReactivePower_File_%d.jpg', fileIndex)));
+        close(f4);
     end
 end

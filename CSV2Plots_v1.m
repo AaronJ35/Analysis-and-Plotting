@@ -13,6 +13,11 @@ function CSV2Plots_v1(baseFilePath, singleFigure, numFiles, folderName)
     % Example:
     %   CSV2Plots_v1('/output/UT_equal/BZ_fix-opf', true, 23, 'UT_equal plots');
 
+    %% Initialize aggregated arrays for PG and QG
+    allPg = [];
+    allQg = [];
+    allvm2 = [];
+    allva2 = [];
     %% Create the main folder if it doesn't exist
     if ~exist(folderName, 'dir')
         mkdir(folderName);
@@ -25,15 +30,91 @@ function CSV2Plots_v1(baseFilePath, singleFigure, numFiles, folderName)
 
         % Call the plot function for each file
         try
-            plotBusAndGeneratorData(currentFile, singleFigure, folderName, i);
+            [pg, qg, vm2, va2] = plotBusAndGeneratorData(currentFile, singleFigure, folderName, i);
+            % Aggregate the data
+            if isempty(allPg)
+                allPg = pg;
+                allQg = qg;
+                allvm2=vm2;
+                allva2=va2;
+            else
+                allPg = [allPg, pg];
+                allQg = [allQg, qg];
+                allvm2=[allvm2, vm2];
+                allva2=[allva2, va2];
+            end
             fprintf('Processed and saved plots for %s\n', currentFile);
         catch ME
             fprintf('Failed to process %s: %s\n', currentFile, ME.message);
         end
     end
+
+    %% Plot PG data
+    figure;
+    hold on;
+    colors = lines(size(allPg, 1)); % Generate distinct colors for each generator
+    for genIdx = 1:size(allPg, 1)
+        plot(1:numFiles, allPg(genIdx, :), '-o', 'Color', colors(genIdx, :), 'DisplayName', sprintf('PG Generator %d', genIdx));
+    end
+    grid on;
+    title('Generator Real Power (PG)');
+    xlabel('Timestep Index');
+    ylabel('Power (MW)');
+    legend('show');
+    hold off;
+
+    %% Save PG plot
+    saveas(gcf, fullfile(folderName, 'Aggregated_PG_Plot.jpg'));
+
+    %% Plot QG data
+    figure;
+    hold on;
+    for genIdx = 1:size(allQg, 1)
+        plot(1:numFiles, allQg(genIdx, :), '-o', 'Color', colors(genIdx, :), 'DisplayName', sprintf('QG Generator %d', genIdx));
+    end
+    grid on;
+    title('Generator Reactive Power (QG)');
+    xlabel('Timestep Index');
+    ylabel('Power (MVar)');
+    legend('show');
+    hold off;
+
+    %% Save QG plot
+    saveas(gcf, fullfile(folderName, 'Aggregated_QG_Plot.jpg'));
+      %% Plot VM data
+    figure;
+    hold on;
+    for busIdx = 1:size(allvm2, 1)
+        plot(1:numFiles, allvm2(busIdx, :), '-o', 'Color', colors(busIdx, :), 'DisplayName', sprintf('VM Bus %d', busIdx));
+    end
+    grid on;
+    title('Bus Voltage Magnitude Drop (VM)');
+    xlabel('Timestep Index');
+    ylabel('Voltage Magnitude Drop (pu)');
+    legend('show');
+    hold off;
+
+    %% Save VM plot
+    saveas(gcf, fullfile(folderName, 'Aggregated_VM_Plot.jpg'));
+
+    %% Plot VA data
+    figure;
+    hold on;
+    for busIdx = 1:size(allva2, 1)
+        plot(1:numFiles, allva2(busIdx, :), '-o', 'Color', colors(busIdx, :), 'DisplayName', sprintf('VA Bus %d', busIdx));
+    end
+    grid on;
+    title('Bus Voltage Angle (VA)');
+    xlabel('Timestep Index');
+    ylabel('Voltage Angle Deviation (degrees)');
+    legend('show');
+    hold off;
+
+    %% Save VA plot
+    saveas(gcf, fullfile(folderName, 'Aggregated_VA_Plot.jpg'));
 end
 
-function plotBusAndGeneratorData(filename, singleFigure, folderName, fileIndex)
+function [pg, qg, vm2, va2] = plotBusAndGeneratorData(filename, singleFigure, folderName, fileIndex)
     %% Load the file
     fileData = fileread(filename);
 
@@ -69,6 +150,8 @@ function plotBusAndGeneratorData(filename, singleFigure, folderName, fileIndex)
 
     vm = busData(:, 10);
     va = busData(:, 7);
+    vm2=range(vm);
+    va2=range(va);
 
     %% Extract the "GENERATORS" section
     startIdx = strfind(fileData, '0 / GENERATORS:');

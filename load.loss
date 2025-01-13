@@ -1,0 +1,36 @@
+% Separate the COST row from the rest of the CSV
+startIdx = strfind(fileData, '0 / COST:');
+endIdx = strfind(fileData, '0 / BUSES:');
+
+if isempty(startIdx) || isempty(endIdx)
+    error('Could not find the COST section or the boundary with BUSES.');
+end
+
+% Extract the COST row and the remaining data
+costRow = fileData(startIdx:endIdx-1);
+remainingData = fileData(endIdx:end);
+
+% Parse the COST row to extract necessary values
+lines = splitlines(costRow);
+costLine = lines{2}; % Assuming the second line has the relevant data
+costValues = sscanf(costLine, '%f,');
+
+% Extract the required data for fixedloadp, adjloadp, and acplosses
+fixedloadp = costValues(5); % 5th column for fixedloadp
+adjloadp = costValues(6);   % 6th column for adjloadp
+acplosses = costValues(7);  % 7th column for acplosses
+
+% Plot the data
+figure;
+hold on;
+bar(1, fixedloadp, 'FaceColor', 'b', 'DisplayName', 'Fixed Load (P)');
+bar(2, adjloadp, 'FaceColor', 'g', 'DisplayName', 'Adjusted Load (P)');
+bar(3, acplosses, 'FaceColor', 'r', 'DisplayName', 'AC Power Losses');
+hold off;
+grid on;
+legend('show');
+title('Fixed Load, Adjusted Load, and AC Losses');
+xticks(1:3);
+xticklabels({'Fixed Load', 'Adjusted Load', 'AC Losses'});
+ylabel('Values');
+saveas(gcf, fullfile(folderName, sprintf('LoadAndLosses_File_%d.jpg', fileIndex)));

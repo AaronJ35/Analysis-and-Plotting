@@ -38,7 +38,7 @@ for j = 1:length(scaled_pv_sums)
     pv_values = scaled_pv_sums(j) / length(pv_buses);
     % Add the PV values to the respective row in the matrix
     for k = 1:length(pv_buses)
-        output_matrix{j + 1, k + 1} = pv_values;
+        output_matrix{j + 1, k + 1} = -pv_values;
     end
 end
 

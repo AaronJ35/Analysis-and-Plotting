@@ -49,7 +49,7 @@ function CSV2Plots_v3(baseFilePath, numFiles, folderName)
     %% Plot PG data
     subplot(2, 1, 1);
     hold on;
-    colors = lines(size(allPg, 1)); % Generate distinct colors for each generator
+    colors = blackToBlue(size(allPg, 1)); % Generate distinct colors for each generator
     for genIdx = 1:size(allPg, 1)
         plot(1:numFiles, allPg(genIdx, :), '-o', 'Color', colors(genIdx, :), 'DisplayName', sprintf('PG Generator %d', genIdx));
     end
@@ -78,8 +78,8 @@ saveas(gcf, fullfile(folderName, 'PG_QG_.jpg'));
     subplot(2, 1, 1);
     hold on;
     for busIdx = 1:size(allvm2, 1)
-        plot(1:numFiles, allvm2(busIdx, :), '-o', 'Color', 'r', 'DisplayName', sprintf('VM Bus %d', busIdx));
-                plot(1:numFiles, vm3(busIdx, :), '-o', 'Color', 'g', 'DisplayName', sprintf('VM Bus %d', busIdx));
+        plot(1:numFiles, allvm2(busIdx, :), '-o', 'Color', 'b', 'DisplayName', sprintf('VM Bus %d', busIdx));
+                plot(1:numFiles, vm3(busIdx, :), '-o', 'Color', 'k', 'DisplayName', sprintf('VM Bus %d', busIdx));
     end
     grid on;
     title('Bus Voltage Magnitude(VM)');
@@ -92,8 +92,8 @@ saveas(gcf, fullfile(folderName, 'PG_QG_.jpg'));
     subplot(2, 1, 2);
     hold on;
     for busIdx = 1:size(allva2, 1)
-        plot(1:numFiles, allva2(busIdx, :), '-o', 'Color', 'g', 'DisplayName', sprintf('VA Bus %d', busIdx));
-           plot(1:numFiles, va3(busIdx, :), '-o', 'Color', 'r', 'DisplayName', sprintf('VM Bus %d', busIdx));
+        plot(1:numFiles, allva2(busIdx, :), '-o', 'Color', 'k', 'DisplayName', sprintf('VA Bus %d', busIdx));
+           plot(1:numFiles, va3(busIdx, :), '-o', 'Color', 'b', 'DisplayName', sprintf('VM Bus %d', busIdx));
     end
     grid on;
     title('Bus Voltage Angle (VA)');
@@ -182,4 +182,10 @@ function [pg, qg, vm2, va2, vm3, va3] = plotBusAndGeneratorData(filename, fileIn
     busNumbers = genData(:, 4);
 
    
+end
+function colormap = blackToBlue(N)
+    % Create a black-to-blue colormap with N colors
+    colormap = [linspace(0, 0, N)', ... % Red channel (all zeros)
+                linspace(0, 0, N)', ... % Green channel (all zeros)
+                linspace(0, 1, N)'];   % Blue channel (black to blue)
 end

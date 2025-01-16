@@ -8,24 +8,23 @@ end
 
 % Extract the COST row and the remaining data
 costRow = fileData(startIdx:endIdx-1);
-remainingData = fileData(endIdx:end);
 
 % Parse the COST row to extract necessary values
 lines = splitlines(costRow);
-costLine = lines{2}; % Assuming the second line has the relevant data
+costLine = lines{3}; % Assuming the second line has the relevant data
 costValues = sscanf(costLine, '%f,');
 
 % Extract the required data for fixedloadp, adjloadp, and acplosses
-fixedloadp = costValues(5); % 5th column for fixedloadp
-adjloadp = costValues(6);   % 6th column for adjloadp
-acplosses = costValues(7);  % 7th column for acplosses
+fixedloadp = costValues(4); % 5th column for fixedloadp
+adjloadp = costValues(5);   % 6th column for adjloadp
+acplosses = costValues(6);  % 7th column for acplosses
 
 % Plot the data
 figure;
 hold on;
-bar(1, fixedloadp, 'FaceColor', 'b', 'DisplayName', 'Fixed Load (P)');
+bar(1, fixedloadp, 'FaceColor', 'k', 'DisplayName', 'Fixed Load (P)');
 bar(2, adjloadp, 'FaceColor', 'g', 'DisplayName', 'Adjusted Load (P)');
-bar(3, acplosses, 'FaceColor', 'r', 'DisplayName', 'AC Power Losses');
+bar(3, acplosses, 'FaceColor', 'b', 'DisplayName', 'AC Power Losses');
 hold off;
 grid on;
 legend('show');

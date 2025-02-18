@@ -17,11 +17,11 @@ function RunPlot()
     % folderPatterns = {'.8'};
      folderPatterns = {'.9'};
     % Define the subfolder path structure
-    innerPath = fullfile('BZ2_Q4', 'output');
+    innerPath = fullfile('Q4', 'output');
     
     % Define the specific file name pattern
-    baseFileName = 'BZ2_lowQ_with_PV_buses_67_241_179_479_pf_0.%-dispatch1.csv';
-    plotFileName = ['BZ2_lowQ_with_PV_buses_67_241_179_479_pf_0.%-dispatch' ...
+    baseFileName = 'dispatch1.csv';
+    plotFileName = ['dispatch' ...
         ''];
     
     % Loop through each specified folder
